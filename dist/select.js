@@ -1,7 +1,7 @@
 /*!
  * ui-select
  * http://github.com/angular-ui/ui-select
- * Version: 0.13.2 - 2016-08-25T18:32:18.176Z
+ * Version: 0.13.2 - 2016-08-30T23:50:46.653Z
  * License: MIT
  */
 
@@ -259,6 +259,7 @@ uis.controller('uiSelectCtrl',
   ctrl.removeSelected = false; //If selected item(s) should be removed from dropdown list
   ctrl.closeOnSelect = true; //Initialized inside uiSelect directive link function
   ctrl.search = EMPTY_SEARCH;
+  ctrl.selectionMade = false;
 
   ctrl.activeIndex = 0; //Dropdown of choices
   ctrl.items = []; //All available choices
@@ -506,6 +507,8 @@ uis.controller('uiSelectCtrl',
 
   // When the user selects an item with ENTER or clicks the dropdown
   ctrl.select = function(item, skipFocusser, $event) {
+    ctrl.selectionMade = !!item;
+
     if (item === undefined || !item._uiSelectChoiceDisabled) {
 
       if ( ! ctrl.items && ! ctrl.search ) return;
@@ -679,9 +682,27 @@ uis.controller('uiSelectCtrl',
     return processed;
   }
 
+  // On blur, if no items have been selected, select the first one by default.
   ctrl.searchInput.on('blur', function() {
+
     if (ctrl.items.length > 0) {
-      if (!ctrl.multiple || ctrl.open) ctrl.select(ctrl.items[ctrl.activeIndex], true);
+      if (!ctrl.multiple || ctrl.open) {
+
+        var firstItem = ctrl.items[0];
+
+        $timeout(function() {
+
+          if (!ctrl.selectionMade) {
+
+            ctrl.select(firstItem, true);
+
+          }
+
+          ctrl.selectionMade = false;
+
+        }, 200);   // Wait for ng-click on selected rows to propagate and its handler to be invoked.
+
+      }
     }
   });
 
